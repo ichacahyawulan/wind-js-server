@@ -46,7 +46,7 @@ app.get('/latest', cors(corsOptions), function(req, res){
 	 */
 	function sendLatest(targetMoment){
 
-		var stamp = moment(targetMoment).format('YYYYMMDD') + roundHours(moment(targetMoment).hour(), 6);
+		var stamp = moment(targetMoment).format('YYYYMMDD');
 		var fileName = __dirname +"/json-data/"+ stamp +".json";
 
 		res.setHeader('Content-Type', 'application/json');
@@ -150,7 +150,7 @@ function getGribData(targetMoment){
             return;
         }
 
-		var stamp = moment(targetMoment).format('YYYYMMDD') + roundHours(moment(targetMoment).hour(), 6);
+		var stamp = moment(targetMoment).format('YYYYMMDD');
 		request.get({
 			url: baseDir,
 			qs: {
@@ -164,7 +164,7 @@ function getGribData(targetMoment){
 				rightlon: 360,
 				toplat: 90,
 				bottomlat: -90,
-				dir: '/gfs.'+stamp
+				dir: '/gfs.'+ stamp + "/" + roundHours(moment(targetMoment).hour(), 6) + "/atmos"
 			}
 
 		}).on('error', function(err){
@@ -217,7 +217,7 @@ function convertGribToJson(stamp, targetMoment){
 
 	var exec = require('child_process').exec, child;
 
-	child = exec('converter/bin/grib2json --data --output json-data/'+stamp+'.json --names --compact grib-data/'+stamp+'.f000',
+	child = exec('converter\\bin\\grib2json --data --output json-data\\'+stamp+'.json --names --compact grib-data\\'+stamp+'.f000',
 		{maxBuffer: 500*1024},
 		function (error, stdout, stderr){
 
@@ -229,13 +229,13 @@ function convertGribToJson(stamp, targetMoment){
 				console.log("converted..");
 
 				// don't keep raw grib data
-				exec('rm grib-data/*');
+				exec('rm grib-data\\*');
 
 				// if we don't have older stamp, try and harvest one
 				var prevMoment = moment(targetMoment).subtract(6, 'hours');
 				var prevStamp = prevMoment.format('YYYYMMDD') + roundHours(prevMoment.hour(), 6);
 
-				if(!checkPath('json-data/'+ prevStamp +'.json', false)){
+				if(!checkPath('json-data\\'+ prevStamp +'.json', false)){
 
 					console.log("attempting to harvest older data "+ stamp);
 					run(prevMoment);
